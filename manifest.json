@@ -3,8 +3,8 @@
   "name": "MyLeonardo",
   "version": "0.1.0",
   "config_flow": true,
-  "documentation": "https://github.com/nathanielcutajar/myleonardo",
-  "issue_tracker": "https://github.com/nathanielcutajar/myleonardo/issues",
+  "documentation": "https://github.com/nathanielcutajar/hass-myleonardo",
+  "issue_tracker": "https://github.com/nathanielcutajar/hass-myleonardo/issues",
   "iot_class": "cloud_polling",
   "requirements": [],
   "codeowners": ["@nathanielcutajar"]
