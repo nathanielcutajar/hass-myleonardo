@@ -1,0 +1,216 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MyLeonardo",
+        "description": "Enter your MyLeonardo API credentials.",
+        "data": {
+          "api_key": "API key",
+          "plant_key": "Plant key"
+        },
+        "data_description": {
+          "api_key": "Token from the MyLeonardo portal or API documentation.",
+          "plant_key": "Plant identifier used by the MyLeonardo external API."
+        }
+      },
+      "reauth_confirm": {
+        "title": "MyLeonardo",
+        "description": "Enter a new MyLeonardo API key.",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "Replacement token from the MyLeonardo portal or API documentation."
+        }
+      },
+      "reconfigure_confirm": {
+        "title": "MyLeonardo",
+        "description": "Update the MyLeonardo API credentials used by this integration.",
+        "data": {
+          "api_key": "API key",
+          "plant_key": "Plant key"
+        },
+        "data_description": {
+          "api_key": "Token from the MyLeonardo portal or API documentation.",
+          "plant_key": "Plant identifier used by the MyLeonardo external API."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to MyLeonardo.",
+      "invalid_auth": "The API key was rejected by MyLeonardo.",
+      "invalid_plant": "The plant key was rejected by MyLeonardo.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This MyLeonardo plant is already configured.",
+      "reauth_successful": "The MyLeonardo API key was updated.",
+      "reconfigure_successful": "The MyLeonardo configuration was updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "MyLeonardo options",
+        "description": "Choose which endpoint groups are created and how often each endpoint is polled.",
+        "data": {
+          "enable_realtime_sensors": "Enable realtime sensors",
+          "enable_energy_sensors": "Enable energy sensors",
+          "enable_advanced_sensors": "Enable advanced sensors",
+          "realtime_scan_interval": "Realtime scan interval in seconds",
+          "energy_scan_interval": "Energy scan interval in seconds",
+          "advanced_scan_interval": "Advanced scan interval in seconds"
+        },
+        "data_description": {
+          "enable_realtime_sensors": "Create entities for the realtime endpoint.",
+          "enable_energy_sensors": "Create entities for the energy endpoint.",
+          "enable_advanced_sensors": "Create diagnostic entities for the advanced endpoint.",
+          "realtime_scan_interval": "Minimum 5 seconds according to the MyLeonardo API rate limit.",
+          "energy_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit.",
+          "advanced_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "realtime_production": {
+        "name": "Realtime production"
+      },
+      "realtime_home_consumption": {
+        "name": "Realtime home consumption"
+      },
+      "realtime_grid_power": {
+        "name": "Realtime grid power"
+      },
+      "realtime_battery_power": {
+        "name": "Realtime battery power"
+      },
+      "realtime_load_power": {
+        "name": "Realtime load power"
+      },
+      "realtime_pwm_power": {
+        "name": "Realtime PWM power"
+      },
+      "realtime_battery_soc": {
+        "name": "Realtime battery SOC"
+      },
+      "realtime_battery_temperature": {
+        "name": "Realtime battery temperature"
+      },
+      "realtime_wallbox_power": {
+        "name": "Realtime wallbox power"
+      },
+      "realtime_wallbox_energy": {
+        "name": "Realtime wallbox energy"
+      },
+      "realtime_updated": {
+        "name": "Realtime updated"
+      },
+      "energy_solar_energy_today": {
+        "name": "Energy solar energy today"
+      },
+      "energy_home_consumption_today": {
+        "name": "Energy home consumption today"
+      },
+      "energy_grid_import_today": {
+        "name": "Energy grid import today"
+      },
+      "energy_grid_export_today": {
+        "name": "Energy grid export today"
+      },
+      "energy_battery_charged_today": {
+        "name": "Energy battery charged today"
+      },
+      "energy_battery_discharged_today": {
+        "name": "Energy battery discharged today"
+      },
+      "energy_pwm_today": {
+        "name": "Energy PWM today"
+      },
+      "energy_load_today": {
+        "name": "Energy load today"
+      },
+      "energy_bucket_date": {
+        "name": "Energy bucket date"
+      },
+      "advanced_average_production": {
+        "name": "Advanced average production"
+      },
+      "advanced_average_home_consumption": {
+        "name": "Advanced average home consumption"
+      },
+      "advanced_average_grid_power": {
+        "name": "Advanced average grid power"
+      },
+      "advanced_average_battery_power": {
+        "name": "Advanced average battery power"
+      },
+      "advanced_average_load_power": {
+        "name": "Advanced average load power"
+      },
+      "advanced_average_pwm_power": {
+        "name": "Advanced average PWM power"
+      },
+      "advanced_battery_voltage": {
+        "name": "Advanced battery voltage"
+      },
+      "advanced_battery_current": {
+        "name": "Advanced battery current"
+      },
+      "advanced_load_current": {
+        "name": "Advanced load current"
+      },
+      "advanced_pwm_current": {
+        "name": "Advanced PWM current"
+      },
+      "advanced_battery_cycles": {
+        "name": "Advanced battery cycles"
+      },
+      "advanced_battery_temperature": {
+        "name": "Advanced battery temperature"
+      },
+      "advanced_internal_temperature": {
+        "name": "Advanced internal temperature"
+      },
+      "advanced_battery_soc": {
+        "name": "Advanced battery SOC"
+      },
+      "advanced_ac_input_voltage": {
+        "name": "Advanced AC input voltage"
+      },
+      "advanced_ac_input_current": {
+        "name": "Advanced AC input current"
+      },
+      "advanced_ac_output_voltage": {
+        "name": "Advanced AC output voltage"
+      },
+      "advanced_ac_output_current": {
+        "name": "Advanced AC output current"
+      },
+      "advanced_ac_input_frequency": {
+        "name": "Advanced AC input frequency"
+      },
+      "advanced_ac_output_frequency": {
+        "name": "Advanced AC output frequency"
+      },
+      "advanced_bucket_time": {
+        "name": "Advanced bucket time"
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Failed to connect to MyLeonardo."
+    },
+    "invalid_auth": {
+      "message": "The API key was rejected by MyLeonardo."
+    },
+    "invalid_plant": {
+      "message": "The plant key was rejected by MyLeonardo."
+    },
+    "unexpected_response": {
+      "message": "MyLeonardo returned an unexpected response."
+    }
+  }
+}

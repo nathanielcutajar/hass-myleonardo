@@ -1,0 +1,11 @@
+{
+  "domain": "myleonardo",
+  "name": "MyLeonardo",
+  "version": "0.1.0",
+  "config_flow": true,
+  "documentation": "https://github.com/nathanielcutajar/myleonardo",
+  "issue_tracker": "https://github.com/nathanielcutajar/myleonardo/issues",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "codeowners": ["@nathanielcutajar"]
+}

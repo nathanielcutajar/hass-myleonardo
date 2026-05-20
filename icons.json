@@ -1,0 +1,111 @@
+{
+  "entity": {
+    "sensor": {
+      "realtime_production": {
+        "default": "mdi:solar-power-variant"
+      },
+      "realtime_home_consumption": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "realtime_grid_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "realtime_battery_power": {
+        "default": "mdi:battery-charging"
+      },
+      "realtime_load_power": {
+        "default": "mdi:power-plug"
+      },
+      "realtime_pwm_power": {
+        "default": "mdi:sine-wave"
+      },
+      "realtime_wallbox_power": {
+        "default": "mdi:ev-station"
+      },
+      "realtime_wallbox_energy": {
+        "default": "mdi:ev-station"
+      },
+      "realtime_updated": {
+        "default": "mdi:clock-outline"
+      },
+      "energy_solar_energy_today": {
+        "default": "mdi:solar-power"
+      },
+      "energy_home_consumption_today": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "energy_grid_import_today": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "energy_grid_export_today": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "energy_battery_charged_today": {
+        "default": "mdi:battery-plus"
+      },
+      "energy_battery_discharged_today": {
+        "default": "mdi:battery-minus"
+      },
+      "energy_pwm_today": {
+        "default": "mdi:sine-wave"
+      },
+      "energy_load_today": {
+        "default": "mdi:power-plug"
+      },
+      "energy_bucket_date": {
+        "default": "mdi:calendar"
+      },
+      "advanced_average_production": {
+        "default": "mdi:solar-power-variant"
+      },
+      "advanced_average_home_consumption": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "advanced_average_grid_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "advanced_average_battery_power": {
+        "default": "mdi:battery-charging"
+      },
+      "advanced_average_load_power": {
+        "default": "mdi:power-plug"
+      },
+      "advanced_average_pwm_power": {
+        "default": "mdi:sine-wave"
+      },
+      "advanced_load_current": {
+        "default": "mdi:current-ac"
+      },
+      "advanced_pwm_current": {
+        "default": "mdi:current-dc"
+      },
+      "advanced_battery_cycles": {
+        "default": "mdi:battery-sync"
+      },
+      "advanced_internal_temperature": {
+        "default": "mdi:thermometer-lines"
+      },
+      "advanced_ac_input_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "advanced_ac_input_current": {
+        "default": "mdi:current-ac"
+      },
+      "advanced_ac_output_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "advanced_ac_output_current": {
+        "default": "mdi:current-ac"
+      },
+      "advanced_ac_input_frequency": {
+        "default": "mdi:sine-wave"
+      },
+      "advanced_ac_output_frequency": {
+        "default": "mdi:sine-wave"
+      },
+      "advanced_bucket_time": {
+        "default": "mdi:clock-outline"
+      }
+    }
+  }
+}

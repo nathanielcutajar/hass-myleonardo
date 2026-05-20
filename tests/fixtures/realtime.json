@@ -1,0 +1,17 @@
+{
+    "data": {
+        "Dkey": "00306283AAA2969B",
+        "Bkey": "00306283AAA2969B",
+        "Rtime": "2026-05-17 18:32:19",
+        "Ppwm": null,
+        "Pbat": "-348.81",
+        "Pload": "348.81",
+        "Tbat": "29.6",
+        "SoC": "86",
+        "PacPV": "369",
+        "PacGrid": "-4",
+        "PacHome": "718",
+        "walc_pread": "0",
+        "walc_energy": "0"
+    }
+}

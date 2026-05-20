@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "Dkey": "00306283AAA2969B",
+            "Stime": "2026-05-01",
+            "Epwm": 0,
+            "Einbat": 159250,
+            "Eoutbat": 148320,
+            "Eload": 0,
+            "EacGridIn": 83160,
+            "EacGridOut": 63790,
+            "EacPV": 412350,
+            "EacHome": 354160
+        }
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "data": [
+        {
+            "Bkey": "",
+            "Dkey": "00306283AAA2969B",
+            "Stime": "2026-05-17T18:25:00",
+            "avgPpwm": null,
+            "avgPbat": -277.933,
+            "avgPload": 277.933,
+            "avgPacPV": 454.792,
+            "avgPacGrid": -6.72222,
+            "avgPacHome": 706.333,
+            "Vbat": 49.88,
+            "Ibat": -6.9,
+            "Ipwm": null,
+            "Iload": 6.9,
+            "Tbat": 29.7,
+            "Tint": null,
+            "SoC": 87.0,
+            "VacIn": 243.62,
+            "IacIn": 0.0,
+            "FacIn": 50.1046,
+            "VacOut": 243.62,
+            "IacOut": -1.18,
+            "FacOut": 50.1479,
+            "nCicli": 201
+        }
+    ]
+}
