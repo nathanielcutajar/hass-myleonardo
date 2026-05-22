@@ -7,6 +7,9 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -23,26 +26,59 @@ from .const import (
     DOMAIN,
     CONF_API_KEY,
     CONF_PLANT_KEY,
+    CONF_CONNECTION_TYPE,
+    CONF_MODBUS_HOST,
+    CONF_MODBUS_PORT,
     CONF_ADVANCED_SCAN_INTERVAL,
     CONF_ENABLE_ADVANCED_SENSORS,
     CONF_ENABLE_ENERGY_SENSORS,
     CONF_ENABLE_REALTIME_SENSORS,
     CONF_ENERGY_SCAN_INTERVAL,
     CONF_REALTIME_SCAN_INTERVAL,
+    CONNECTION_TYPE_CLOUD,
+    CONNECTION_TYPE_HYBRID,
+    CONNECTION_TYPE_MODBUS,
     DEFAULT_ADVANCED_SCAN_INTERVAL,
     DEFAULT_ENABLE_ADVANCED_SENSORS,
     DEFAULT_ENABLE_ENERGY_SENSORS,
     DEFAULT_ENABLE_REALTIME_SENSORS,
     DEFAULT_ENERGY_SCAN_INTERVAL,
+    DEFAULT_MODBUS_SCAN_INTERVAL,
     DEFAULT_REALTIME_SCAN_INTERVAL,
+    DEFAULT_MODBUS_PORT,
     MIN_ADVANCED_SCAN_INTERVAL,
     MIN_ENERGY_SCAN_INTERVAL,
+    MIN_MODBUS_SCAN_INTERVAL,
     MIN_REALTIME_SCAN_INTERVAL,
+)
+from .modbus_api import (
+    MyLeonardoModbusApi,
+    MyLeonardoModbusError,
 )
 
 API_KEY_SELECTOR = TextSelector(
     TextSelectorConfig(
         type=TextSelectorType.PASSWORD,
+    )
+)
+
+CONNECTION_TYPE_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[
+            {
+                "value": CONNECTION_TYPE_CLOUD,
+                "label": "Cloud API",
+            },
+            {
+                "value": CONNECTION_TYPE_MODBUS,
+                "label": "Local Modbus TCP",
+            },
+            {
+                "value": CONNECTION_TYPE_HYBRID,
+                "label": "Hybrid",
+            },
+        ],
+        mode=SelectSelectorMode.DROPDOWN,
     )
 )
 
@@ -53,6 +89,20 @@ OPTIONS_FIELDS = {
     CONF_REALTIME_SCAN_INTERVAL: "Realtime scan interval in seconds",
     CONF_ENERGY_SCAN_INTERVAL: "Energy scan interval in seconds",
     CONF_ADVANCED_SCAN_INTERVAL: "Advanced scan interval in seconds",
+}
+
+MODBUS_OPTIONS_FIELDS = {
+    CONF_ENABLE_REALTIME_SENSORS: "Enable local Modbus sensors",
+    CONF_REALTIME_SCAN_INTERVAL: "Local Modbus scan interval in seconds",
+}
+
+HYBRID_OPTIONS_FIELDS = {
+    CONF_ENABLE_REALTIME_SENSORS: "Enable local Modbus sensors",
+    CONF_ENABLE_ENERGY_SENSORS: "Enable cloud energy sensors",
+    CONF_ENABLE_ADVANCED_SENSORS: "Enable cloud advanced sensors",
+    CONF_REALTIME_SCAN_INTERVAL: "Local Modbus scan interval in seconds",
+    CONF_ENERGY_SCAN_INTERVAL: "Cloud energy scan interval in seconds",
+    CONF_ADVANCED_SCAN_INTERVAL: "Cloud advanced scan interval in seconds",
 }
 
 
@@ -70,8 +120,25 @@ class MyLeonardoConfigFlow(
 
     def _clean_user_input(self, user_input):
         return {
+            CONF_CONNECTION_TYPE: CONNECTION_TYPE_CLOUD,
             CONF_API_KEY: user_input[CONF_API_KEY].strip(),
             CONF_PLANT_KEY: user_input[CONF_PLANT_KEY].strip(),
+        }
+
+    def _clean_modbus_input(self, user_input):
+        return {
+            CONF_CONNECTION_TYPE: CONNECTION_TYPE_MODBUS,
+            CONF_MODBUS_HOST: user_input[CONF_MODBUS_HOST].strip(),
+            CONF_MODBUS_PORT: user_input[CONF_MODBUS_PORT],
+        }
+
+    def _clean_hybrid_input(self, user_input):
+        return {
+            CONF_CONNECTION_TYPE: CONNECTION_TYPE_HYBRID,
+            CONF_API_KEY: user_input[CONF_API_KEY].strip(),
+            CONF_PLANT_KEY: user_input[CONF_PLANT_KEY].strip(),
+            CONF_MODBUS_HOST: user_input[CONF_MODBUS_HOST].strip(),
+            CONF_MODBUS_PORT: user_input[CONF_MODBUS_PORT],
         }
 
     async def _async_validate_input(self, user_input):
@@ -97,7 +164,54 @@ class MyLeonardoConfigFlow(
 
         return None
 
+    async def _async_try_validate_modbus_input(self, user_input):
+        try:
+            api = MyLeonardoModbusApi(
+                user_input[CONF_MODBUS_HOST],
+                user_input[CONF_MODBUS_PORT],
+            )
+            await api.async_get_data()
+        except MyLeonardoModbusError:
+            return "cannot_connect"
+
+        return None
+
+    async def _async_try_validate_hybrid_input(self, user_input):
+        cloud_error = await self._async_try_validate_input(user_input)
+
+        if cloud_error:
+            return cloud_error
+
+        return await self._async_try_validate_modbus_input(user_input)
+
     async def async_step_user(
+        self,
+        user_input=None,
+    ):
+        if user_input is not None:
+            if user_input[CONF_CONNECTION_TYPE] == CONNECTION_TYPE_MODBUS:
+                return await self.async_step_modbus()
+
+            if user_input[CONF_CONNECTION_TYPE] == CONNECTION_TYPE_HYBRID:
+                return await self.async_step_hybrid()
+
+            return await self.async_step_cloud()
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_CONNECTION_TYPE,
+                    default=CONNECTION_TYPE_CLOUD,
+                ): CONNECTION_TYPE_SELECTOR,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=schema,
+        )
+
+    async def async_step_cloud(
         self,
         user_input=None,
     ):
@@ -125,7 +239,84 @@ class MyLeonardoConfigFlow(
         })
 
         return self.async_show_form(
-            step_id="user",
+            step_id="cloud",
+            data_schema=schema,
+            errors=errors,
+        )
+
+    async def async_step_modbus(
+        self,
+        user_input=None,
+    ):
+        errors = {}
+
+        if user_input is not None:
+            user_input = self._clean_modbus_input(user_input)
+            unique_id = (
+                f"modbus_{user_input[CONF_MODBUS_HOST]}_"
+                f"{user_input[CONF_MODBUS_PORT]}"
+            )
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
+
+            error = await self._async_try_validate_modbus_input(user_input)
+
+            if error:
+                errors["base"] = error
+            else:
+                return self.async_create_entry(
+                    title="MyLeonardo",
+                    data=user_input,
+                )
+
+        schema = vol.Schema({
+            vol.Required(CONF_MODBUS_HOST): str,
+            vol.Required(
+                CONF_MODBUS_PORT,
+                default=DEFAULT_MODBUS_PORT,
+            ): int,
+        })
+
+        return self.async_show_form(
+            step_id="modbus",
+            data_schema=schema,
+            errors=errors,
+        )
+
+    async def async_step_hybrid(
+        self,
+        user_input=None,
+    ):
+        errors = {}
+
+        if user_input is not None:
+            user_input = self._clean_hybrid_input(user_input)
+            plant_key = user_input[CONF_PLANT_KEY]
+            await self.async_set_unique_id(plant_key)
+            self._abort_if_unique_id_configured()
+
+            error = await self._async_try_validate_hybrid_input(user_input)
+
+            if error:
+                errors["base"] = error
+            else:
+                return self.async_create_entry(
+                    title="MyLeonardo",
+                    data=user_input,
+                )
+
+        schema = vol.Schema({
+            vol.Required(CONF_API_KEY): API_KEY_SELECTOR,
+            vol.Required(CONF_PLANT_KEY): str,
+            vol.Required(CONF_MODBUS_HOST): str,
+            vol.Required(
+                CONF_MODBUS_PORT,
+                default=DEFAULT_MODBUS_PORT,
+            ): int,
+        })
+
+        return self.async_show_form(
+            step_id="hybrid",
             data_schema=schema,
             errors=errors,
         )
@@ -191,6 +382,131 @@ class MyLeonardoConfigFlow(
         errors = {}
 
         current_data = self._reconfigure_entry.data
+        connection_type = current_data.get(
+            CONF_CONNECTION_TYPE,
+            CONNECTION_TYPE_CLOUD,
+        )
+
+        if connection_type == CONNECTION_TYPE_MODBUS:
+            if user_input is not None:
+                user_input = self._clean_modbus_input(user_input)
+                unique_id = (
+                    f"modbus_{user_input[CONF_MODBUS_HOST]}_"
+                    f"{user_input[CONF_MODBUS_PORT]}"
+                )
+
+                for entry in self._async_current_entries():
+                    if (
+                        entry.entry_id
+                        != self._reconfigure_entry.entry_id
+                        and entry.unique_id == unique_id
+                    ):
+                        return self.async_abort(
+                            reason="already_configured"
+                        )
+
+                error = await self._async_try_validate_modbus_input(
+                    user_input
+                )
+
+                if error:
+                    errors["base"] = error
+                else:
+                    self.hass.config_entries.async_update_entry(
+                        self._reconfigure_entry,
+                        unique_id=unique_id,
+                        data=user_input,
+                    )
+                    await self.hass.config_entries.async_reload(
+                        self._reconfigure_entry.entry_id
+                    )
+
+                    return self.async_abort(
+                        reason="reconfigure_successful"
+                    )
+
+            schema = vol.Schema({
+                vol.Required(
+                    CONF_MODBUS_HOST,
+                    default=current_data.get(CONF_MODBUS_HOST, ""),
+                ): str,
+                vol.Required(
+                    CONF_MODBUS_PORT,
+                    default=current_data.get(
+                        CONF_MODBUS_PORT,
+                        DEFAULT_MODBUS_PORT,
+                    ),
+                ): int,
+            })
+
+            return self.async_show_form(
+                step_id="reconfigure_confirm",
+                data_schema=schema,
+                errors=errors,
+            )
+
+        if connection_type == CONNECTION_TYPE_HYBRID:
+            if user_input is not None:
+                user_input = self._clean_hybrid_input(user_input)
+                plant_key = user_input[CONF_PLANT_KEY]
+
+                for entry in self._async_current_entries():
+                    if (
+                        entry.entry_id
+                        != self._reconfigure_entry.entry_id
+                        and entry.unique_id == plant_key
+                    ):
+                        return self.async_abort(
+                            reason="already_configured"
+                        )
+
+                error = await self._async_try_validate_hybrid_input(
+                    user_input
+                )
+
+                if error:
+                    errors["base"] = error
+                else:
+                    self.hass.config_entries.async_update_entry(
+                        self._reconfigure_entry,
+                        unique_id=plant_key,
+                        data=user_input,
+                    )
+                    await self.hass.config_entries.async_reload(
+                        self._reconfigure_entry.entry_id
+                    )
+
+                    return self.async_abort(
+                        reason="reconfigure_successful"
+                    )
+
+            schema = vol.Schema({
+                vol.Required(
+                    CONF_API_KEY,
+                    default=current_data.get(CONF_API_KEY, ""),
+                ): API_KEY_SELECTOR,
+                vol.Required(
+                    CONF_PLANT_KEY,
+                    default=current_data.get(CONF_PLANT_KEY, ""),
+                ): str,
+                vol.Required(
+                    CONF_MODBUS_HOST,
+                    default=current_data.get(CONF_MODBUS_HOST, ""),
+                ): str,
+                vol.Required(
+                    CONF_MODBUS_PORT,
+                    default=current_data.get(
+                        CONF_MODBUS_PORT,
+                        DEFAULT_MODBUS_PORT,
+                    ),
+                ): int,
+            })
+
+            return self.async_show_form(
+                step_id="reconfigure_confirm",
+                data_schema=schema,
+                errors=errors,
+            )
 
         if user_input is not None:
             user_input = self._clean_user_input(user_input)
@@ -244,6 +560,17 @@ class MyLeonardoConfigFlow(
 
 class MyLeonardoOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
+        connection_type = self.config_entry.data.get(
+            CONF_CONNECTION_TYPE,
+            CONNECTION_TYPE_CLOUD,
+        )
+
+        if connection_type == CONNECTION_TYPE_MODBUS:
+            return await self._async_step_modbus(user_input)
+
+        if connection_type == CONNECTION_TYPE_HYBRID:
+            return await self._async_step_hybrid(user_input)
+
         if user_input is not None:
             return self.async_create_entry(
                 title="",
@@ -310,6 +637,122 @@ class MyLeonardoOptionsFlow(config_entries.OptionsFlow):
             ): NumberSelector(
                 NumberSelectorConfig(
                     min=MIN_ADVANCED_SCAN_INTERVAL,
+                    mode=NumberSelectorMode.BOX,
+                )
+            ),
+        })
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=schema,
+        )
+
+    async def _async_step_hybrid(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(
+                title="",
+                data={
+                    key: user_input[label]
+                    for key, label in HYBRID_OPTIONS_FIELDS.items()
+                },
+            )
+
+        options = self.config_entry.options
+
+        schema = vol.Schema({
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ENABLE_REALTIME_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_REALTIME_SENSORS,
+                    DEFAULT_ENABLE_REALTIME_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ENABLE_ENERGY_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_ENERGY_SENSORS,
+                    DEFAULT_ENABLE_ENERGY_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ENABLE_ADVANCED_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_ADVANCED_SENSORS,
+                    DEFAULT_ENABLE_ADVANCED_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_REALTIME_SCAN_INTERVAL],
+                default=options.get(
+                    CONF_REALTIME_SCAN_INTERVAL,
+                    DEFAULT_MODBUS_SCAN_INTERVAL,
+                ),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=MIN_MODBUS_SCAN_INTERVAL,
+                    mode=NumberSelectorMode.BOX,
+                )
+            ),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ENERGY_SCAN_INTERVAL],
+                default=options.get(
+                    CONF_ENERGY_SCAN_INTERVAL,
+                    DEFAULT_ENERGY_SCAN_INTERVAL,
+                ),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=MIN_ENERGY_SCAN_INTERVAL,
+                    mode=NumberSelectorMode.BOX,
+                )
+            ),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ADVANCED_SCAN_INTERVAL],
+                default=options.get(
+                    CONF_ADVANCED_SCAN_INTERVAL,
+                    DEFAULT_ADVANCED_SCAN_INTERVAL,
+                ),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=MIN_ADVANCED_SCAN_INTERVAL,
+                    mode=NumberSelectorMode.BOX,
+                )
+            ),
+        })
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=schema,
+        )
+
+    async def _async_step_modbus(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(
+                title="",
+                data={
+                    key: user_input[label]
+                    for key, label in MODBUS_OPTIONS_FIELDS.items()
+                },
+            )
+
+        options = self.config_entry.options
+
+        schema = vol.Schema({
+            vol.Required(
+                MODBUS_OPTIONS_FIELDS[CONF_ENABLE_REALTIME_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_REALTIME_SENSORS,
+                    DEFAULT_ENABLE_REALTIME_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                MODBUS_OPTIONS_FIELDS[CONF_REALTIME_SCAN_INTERVAL],
+                default=options.get(
+                    CONF_REALTIME_SCAN_INTERVAL,
+                    DEFAULT_MODBUS_SCAN_INTERVAL,
+                ),
+            ): NumberSelector(
+                NumberSelectorConfig(
+                    min=MIN_MODBUS_SCAN_INTERVAL,
                     mode=NumberSelectorMode.BOX,
                 )
             ),

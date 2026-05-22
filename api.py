@@ -47,9 +47,14 @@ class MyLeonardoApi:
                 headers=self._headers,
                 params=params,
             ) as response:
-                if response.status in (401, 403):
+                if response.status == 401:
                     raise MyLeonardoAuthError(
                         "Invalid MyLeonardo API token"
+                    )
+
+                if response.status == 403:
+                    raise MyLeonardoApiError(
+                        "MyLeonardo API rejected the request"
                     )
 
                 if response.status == 404:

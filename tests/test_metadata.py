@@ -19,6 +19,27 @@ class SensorDescriptionVisitor(ast.NodeVisitor):
             for keyword in node.keywords:
                 if isinstance(keyword.value, ast.Constant):
                     data[keyword.arg] = keyword.value.value
+                elif isinstance(keyword.value, ast.Attribute):
+                    data[keyword.arg] = keyword.value.attr
+
+            self.descriptions.append(data)
+
+        self.generic_visit(node)
+
+
+class BinarySensorDescriptionVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.descriptions = []
+
+    def visit_Call(self, node):
+        if getattr(node.func, "id", "") == "MyLeonardoBinarySensorDescription":
+            data = {}
+
+            for keyword in node.keywords:
+                if isinstance(keyword.value, ast.Constant):
+                    data[keyword.arg] = keyword.value.value
+                elif isinstance(keyword.value, ast.Attribute):
+                    data[keyword.arg] = keyword.value.attr
 
             self.descriptions.append(data)
 
@@ -32,6 +53,18 @@ def load_descriptions():
         )
     )
     visitor = SensorDescriptionVisitor()
+    visitor.visit(tree)
+
+    return visitor.descriptions
+
+
+def load_binary_descriptions():
+    tree = ast.parse(
+        (ROOT / "binary_sensor_descriptions.py").read_text(
+            encoding="utf-8",
+        )
+    )
+    visitor = BinarySensorDescriptionVisitor()
     visitor.visit(tree)
 
     return visitor.descriptions
@@ -83,6 +116,11 @@ class MyLeonardoMetadataTest(unittest.TestCase):
             set(icons["entity"]["sensor"]) - set(strings["entity"]["sensor"]),
             set(),
         )
+        self.assertEqual(
+            set(icons["entity"]["binary_sensor"])
+            - set(strings["entity"]["binary_sensor"]),
+            set(),
+        )
 
     def test_sample_responses_are_covered_except_identifiers(self):
         exposed = {
@@ -114,6 +152,80 @@ class MyLeonardoMetadataTest(unittest.TestCase):
         self.assertRegex(
             sensor,
             re.escape("{plant_key}_{description.source}_{description.key}"),
+        )
+
+    def test_refresh_button_platform_is_registered(self):
+        init = (ROOT / "__init__.py").read_text(encoding="utf-8")
+        button = (ROOT / "button.py").read_text(encoding="utf-8")
+        strings = json.loads(
+            (ROOT / "strings.json").read_text(encoding="utf-8")
+        )
+
+        self.assertIn("Platform.BUTTON", init)
+        self.assertIn("_attr_translation_key = \"refresh\"", button)
+        self.assertIn("refresh", strings["entity"]["button"])
+
+    def test_binary_sensor_platform_is_registered(self):
+        init = (ROOT / "__init__.py").read_text(encoding="utf-8")
+        binary_sensor = (ROOT / "binary_sensor.py").read_text(
+            encoding="utf-8"
+        )
+        strings = json.loads(
+            (ROOT / "strings.json").read_text(encoding="utf-8")
+        )
+
+        self.assertIn("Platform.BINARY_SENSOR", init)
+        self.assertIn("BinarySensorEntity", binary_sensor)
+        self.assertIn("binary_sensor", strings["entity"])
+
+    def test_repair_issue_is_registered_and_translated(self):
+        coordinator = (ROOT / "coordinator.py").read_text(encoding="utf-8")
+        strings = json.loads(
+            (ROOT / "strings.json").read_text(encoding="utf-8")
+        )
+
+        self.assertIn("async_create_issue", coordinator)
+        self.assertIn("async_delete_issue", coordinator)
+        self.assertIn("endpoint_unavailable", strings["issues"])
+
+    def test_binary_sensor_translations_cover_descriptions(self):
+        translation_keys = {
+            item["translation_key"]
+            for item in load_binary_descriptions()
+        }
+        strings = json.loads(
+            (ROOT / "strings.json").read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(
+            translation_keys - set(strings["entity"]["binary_sensor"]),
+            set(),
+        )
+
+    def test_energy_sensors_use_total_increasing_state(self):
+        invalid = [
+            item["key"]
+            for item in load_descriptions()
+            if item.get("source") == "energy"
+            and item.get("device_class") == "ENERGY"
+            and item.get("state_class") != "TOTAL_INCREASING"
+        ]
+
+        self.assertEqual(invalid, [])
+
+    def test_derived_split_power_sensors_are_disabled_by_default(self):
+        derived = [
+            item
+            for item in load_descriptions()
+            if item.get("value_type") in ("positive", "negative_abs")
+        ]
+
+        self.assertEqual(len(derived), 8)
+        self.assertTrue(
+            all(item.get("enabled_default") is False for item in derived)
+        )
+        self.assertTrue(
+            all("source_key" in item for item in derived)
         )
 
 

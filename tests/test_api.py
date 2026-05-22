@@ -127,6 +127,13 @@ class MyLeonardoApiTest(unittest.TestCase):
         with self.assertRaises(api_module.MyLeonardoAuthError):
             asyncio.run(api.async_get_realtime())
 
+    def test_forbidden_status_is_recoverable_api_error(self):
+        session = FakeSession(FakeResponse(403))
+        api = api_module.MyLeonardoApi(session, "token", "plant")
+
+        with self.assertRaises(api_module.MyLeonardoApiError):
+            asyncio.run(api.async_get_realtime())
+
     def test_plant_not_found_raises_plant_error(self):
         session = FakeSession(FakeResponse(404))
         api = api_module.MyLeonardoApi(session, "token", "plant")

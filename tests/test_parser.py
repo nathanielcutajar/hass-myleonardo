@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from parser import get_sensor_value  # noqa: E402
+from parser import get_binary_sensor_value, get_sensor_value  # noqa: E402
 
 
 def load_sample(name):
@@ -69,6 +69,109 @@ class MyLeonardoParserTest(unittest.TestCase):
         )
         self.assertIsNone(
             get_sensor_value(data, "Tint", "advanced"),
+        )
+
+    def test_modbus_values_use_dict_payload(self):
+        data = {
+            "data": {
+                "pv_power": 3662,
+            }
+        }
+
+        self.assertEqual(
+            get_sensor_value(data, "pv_power", "modbus"),
+            3662,
+        )
+
+    def test_positive_value_type_returns_positive_side(self):
+        data = {
+            "data": {
+                "grid_power": 3184,
+            }
+        }
+
+        self.assertEqual(
+            get_sensor_value(data, "grid_power", "modbus", value_type="positive"),
+            3184,
+        )
+
+        data["data"]["grid_power"] = -1200
+
+        self.assertEqual(
+            get_sensor_value(data, "grid_power", "modbus", value_type="positive"),
+            0,
+        )
+
+    def test_negative_abs_value_type_returns_export_or_discharge_side(self):
+        data = {
+            "data": {
+                "grid_power": -1200,
+            }
+        }
+
+        self.assertEqual(
+            get_sensor_value(
+                data,
+                "grid_power",
+                "modbus",
+                value_type="negative_abs",
+            ),
+            1200,
+        )
+
+        data["data"]["grid_power"] = 3184
+
+        self.assertEqual(
+            get_sensor_value(
+                data,
+                "grid_power",
+                "modbus",
+                value_type="negative_abs",
+            ),
+            0,
+        )
+
+    def test_binary_sensor_value_uses_signed_threshold(self):
+        data = {
+            "data": {
+                "grid_power": -1200,
+                "pv_power": 3662,
+            }
+        }
+
+        self.assertTrue(
+            get_binary_sensor_value(
+                data,
+                "pv_power",
+                "modbus",
+                "above",
+            )
+        )
+        self.assertTrue(
+            get_binary_sensor_value(
+                data,
+                "grid_power",
+                "modbus",
+                "below",
+            )
+        )
+        self.assertFalse(
+            get_binary_sensor_value(
+                data,
+                "grid_power",
+                "modbus",
+                "above",
+            )
+        )
+
+    def test_binary_sensor_value_returns_none_for_bad_values(self):
+        self.assertIsNone(
+            get_binary_sensor_value(
+                {"data": {"grid_power": None}},
+                "grid_power",
+                "modbus",
+                "below",
+            )
         )
 
     def test_list_values_use_newest_bucket(self):

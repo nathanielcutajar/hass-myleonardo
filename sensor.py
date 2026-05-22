@@ -10,7 +10,15 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 
-from .const import DOMAIN, CONF_PLANT_KEY
+from .const import (
+    DOMAIN,
+    CONF_CONNECTION_TYPE,
+    CONF_MODBUS_HOST,
+    CONF_PLANT_KEY,
+    CONNECTION_TYPE_CLOUD,
+    CONNECTION_TYPE_HYBRID,
+    CONNECTION_TYPE_MODBUS,
+)
 from .const import (
     CONF_ENABLE_ADVANCED_SENSORS,
     CONF_ENABLE_ENERGY_SENSORS,
@@ -34,23 +42,52 @@ async def async_setup_entry(
     realtime_coordinator = data.realtime
     energy_coordinator = data.energy
     advanced_coordinator = data.advanced
-    plant_key = entry.data[CONF_PLANT_KEY]
+    connection_type = entry.data.get(
+        CONF_CONNECTION_TYPE,
+        CONNECTION_TYPE_CLOUD,
+    )
+    device_identifier = entry.data.get(
+        CONF_PLANT_KEY,
+        entry.data.get(CONF_MODBUS_HOST),
+    )
     options = entry.options
 
     # Build entities from endpoint-specific description groups.
     entities = []
 
+    if connection_type == CONNECTION_TYPE_MODBUS:
+        if options.get(
+            CONF_ENABLE_REALTIME_SENSORS,
+            DEFAULT_ENABLE_REALTIME_SENSORS,
+        ):
+            entities.extend(
+                MyLeonardoRealtimeSensor(
+                    realtime_coordinator,
+                    description,
+                    device_identifier,
+                )
+                for description in MyLeonardoSensorDescriptions.MODBUS
+            )
+
+        async_add_entities(entities)
+        return
+
     if options.get(
         CONF_ENABLE_REALTIME_SENSORS,
         DEFAULT_ENABLE_REALTIME_SENSORS,
     ):
+        realtime_descriptions = (
+            MyLeonardoSensorDescriptions.MODBUS
+            if connection_type == CONNECTION_TYPE_HYBRID
+            else MyLeonardoSensorDescriptions.REALTIME
+        )
         entities.extend(
             MyLeonardoRealtimeSensor(
                 realtime_coordinator,
                 description,
-                plant_key,
+                device_identifier,
             )
-            for description in MyLeonardoSensorDescriptions.REALTIME
+            for description in realtime_descriptions
         )
 
     if options.get(
@@ -61,7 +98,7 @@ async def async_setup_entry(
             MyLeonardoEnergySensor(
                 energy_coordinator,
                 description,
-                plant_key,
+                device_identifier,
             )
             for description in MyLeonardoSensorDescriptions.ENERGY
         )
@@ -74,7 +111,7 @@ async def async_setup_entry(
             MyLeonardoAdvancedSensor(
                 advanced_coordinator,
                 description,
-                plant_key,
+                device_identifier,
             )
             for description in MyLeonardoSensorDescriptions.ADVANCED
         )
@@ -138,7 +175,8 @@ class MyLeonardoRealtimeSensor(
         # Realtime endpoint uses a dict payload under "data".
         return get_sensor_value(
             self.coordinator.data,
-            self.entity_description.key,
+            self.entity_description.source_key
+            or self.entity_description.key,
             self.entity_description.source,
             self.entity_description.scale,
             self.entity_description.value_type,
@@ -165,7 +203,8 @@ class MyLeonardoEnergySensor(
         # Energy endpoint returns a list; the newest bucket is read by parser.py.
         return get_sensor_value(
             self.coordinator.data,
-            self.entity_description.key,
+            self.entity_description.source_key
+            or self.entity_description.key,
             self.entity_description.source,
             self.entity_description.scale,
             self.entity_description.value_type,
@@ -191,7 +230,8 @@ class MyLeonardoAdvancedSensor(
         # Advanced endpoint also returns a list; parser.py hides that shape.
         return get_sensor_value(
             self.coordinator.data,
-            self.entity_description.key,
+            self.entity_description.source_key
+            or self.entity_description.key,
             self.entity_description.source,
             self.entity_description.scale,
             self.entity_description.value_type,
