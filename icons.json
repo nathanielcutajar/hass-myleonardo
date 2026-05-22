@@ -1,5 +1,42 @@
 {
   "entity": {
+    "binary_sensor": {
+      "realtime_producing": {
+        "default": "mdi:solar-power-variant"
+      },
+      "realtime_grid_importing": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "realtime_grid_exporting": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "realtime_battery_charging": {
+        "default": "mdi:battery-plus"
+      },
+      "realtime_battery_discharging": {
+        "default": "mdi:battery-minus"
+      },
+      "modbus_producing": {
+        "default": "mdi:solar-power-variant"
+      },
+      "modbus_grid_importing": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "modbus_grid_exporting": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "modbus_battery_charging": {
+        "default": "mdi:battery-plus"
+      },
+      "modbus_battery_discharging": {
+        "default": "mdi:battery-minus"
+      }
+    },
+    "button": {
+      "refresh": {
+        "default": "mdi:refresh"
+      }
+    },
     "sensor": {
       "realtime_production": {
         "default": "mdi:solar-power-variant"
@@ -10,8 +47,20 @@
       "realtime_grid_power": {
         "default": "mdi:transmission-tower"
       },
+      "realtime_grid_import_power": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "realtime_grid_export_power": {
+        "default": "mdi:transmission-tower-export"
+      },
       "realtime_battery_power": {
         "default": "mdi:battery-charging"
+      },
+      "realtime_battery_charge_power": {
+        "default": "mdi:battery-plus"
+      },
+      "realtime_battery_discharge_power": {
+        "default": "mdi:battery-minus"
       },
       "realtime_load_power": {
         "default": "mdi:power-plug"
@@ -105,6 +154,69 @@
       },
       "advanced_bucket_time": {
         "default": "mdi:clock-outline"
+      },
+      "modbus_pv_power": {
+        "default": "mdi:solar-power-variant"
+      },
+      "modbus_home_power": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "modbus_grid_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "modbus_grid_import_power": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "modbus_grid_export_power": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "modbus_grid_l1_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "modbus_grid_l2_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "modbus_grid_l3_power": {
+        "default": "mdi:transmission-tower"
+      },
+      "modbus_battery_power": {
+        "default": "mdi:battery-charging"
+      },
+      "modbus_battery_charge_power": {
+        "default": "mdi:battery-plus"
+      },
+      "modbus_battery_discharge_power": {
+        "default": "mdi:battery-minus"
+      },
+      "modbus_battery_voltage": {
+        "default": "mdi:battery"
+      },
+      "modbus_battery_temperature": {
+        "default": "mdi:thermometer"
+      },
+      "modbus_ac_input_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "modbus_ac_output_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "modbus_pv_energy_total": {
+        "default": "mdi:solar-power"
+      },
+      "modbus_home_energy_total": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "modbus_battery_charge_energy_total": {
+        "default": "mdi:battery-plus"
+      },
+      "modbus_grid_import_energy_total": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "modbus_grid_export_energy_total": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "modbus_battery_discharge_energy_total": {
+        "default": "mdi:battery-minus"
       }
     }
   }

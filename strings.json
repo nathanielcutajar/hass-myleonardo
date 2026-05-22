@@ -3,6 +3,13 @@
     "step": {
       "user": {
         "title": "MyLeonardo",
+        "description": "Choose how MyLeonardo should collect data.",
+        "data": {
+          "connection_type": "Connection type"
+        }
+      },
+      "cloud": {
+        "title": "MyLeonardo cloud API",
         "description": "Enter your MyLeonardo API credentials.",
         "data": {
           "api_key": "API key",
@@ -11,6 +18,34 @@
         "data_description": {
           "api_key": "Token from the MyLeonardo portal or API documentation.",
           "plant_key": "Plant identifier used by the MyLeonardo external API."
+        }
+      },
+      "modbus": {
+        "title": "MyLeonardo local Modbus TCP",
+        "description": "Enter the local W-Hi-Stick or inverter network details.",
+        "data": {
+          "modbus_host": "Host",
+          "modbus_port": "Port"
+        },
+        "data_description": {
+          "modbus_host": "Local IP address or hostname reachable by Home Assistant.",
+          "modbus_port": "Modbus TCP port. The default is 502."
+        }
+      },
+      "hybrid": {
+        "title": "MyLeonardo hybrid",
+        "description": "Use local Modbus TCP for realtime values and the MyLeonardo cloud API for energy and diagnostic values.",
+        "data": {
+          "api_key": "API key",
+          "plant_key": "Plant key",
+          "modbus_host": "Host",
+          "modbus_port": "Port"
+        },
+        "data_description": {
+          "api_key": "Token from the MyLeonardo portal or API documentation.",
+          "plant_key": "Plant identifier used by the MyLeonardo external API.",
+          "modbus_host": "Local IP address or hostname reachable by Home Assistant.",
+          "modbus_port": "Modbus TCP port. The default is 502."
         }
       },
       "reauth_confirm": {
@@ -25,14 +60,18 @@
       },
       "reconfigure_confirm": {
         "title": "MyLeonardo",
-        "description": "Update the MyLeonardo API credentials used by this integration.",
+        "description": "Update the MyLeonardo connection details used by this integration.",
         "data": {
           "api_key": "API key",
-          "plant_key": "Plant key"
+          "plant_key": "Plant key",
+          "modbus_host": "Host",
+          "modbus_port": "Port"
         },
         "data_description": {
           "api_key": "Token from the MyLeonardo portal or API documentation.",
-          "plant_key": "Plant identifier used by the MyLeonardo external API."
+          "plant_key": "Plant identifier used by the MyLeonardo external API.",
+          "modbus_host": "Local IP address or hostname reachable by Home Assistant.",
+          "modbus_port": "Modbus TCP port. The default is 502."
         }
       }
     },
@@ -65,7 +104,7 @@
           "enable_realtime_sensors": "Create entities for the realtime endpoint.",
           "enable_energy_sensors": "Create entities for the energy endpoint.",
           "enable_advanced_sensors": "Create diagnostic entities for the advanced endpoint.",
-          "realtime_scan_interval": "Minimum 5 seconds according to the MyLeonardo API rate limit.",
+          "realtime_scan_interval": "Minimum 5 seconds according to the MyLeonardo API rate limit. Local Modbus mode allows a minimum of 1 second and defaults to 5 seconds.",
           "energy_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit.",
           "advanced_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit."
         }
@@ -73,129 +112,244 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "realtime_producing": {
+        "name": "Producing"
+      },
+      "realtime_grid_importing": {
+        "name": "Grid importing"
+      },
+      "realtime_grid_exporting": {
+        "name": "Grid exporting"
+      },
+      "realtime_battery_charging": {
+        "name": "Battery charging"
+      },
+      "realtime_battery_discharging": {
+        "name": "Battery discharging"
+      },
+      "modbus_producing": {
+        "name": "Producing"
+      },
+      "modbus_grid_importing": {
+        "name": "Grid importing"
+      },
+      "modbus_grid_exporting": {
+        "name": "Grid exporting"
+      },
+      "modbus_battery_charging": {
+        "name": "Battery charging"
+      },
+      "modbus_battery_discharging": {
+        "name": "Battery discharging"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    },
     "sensor": {
       "realtime_production": {
-        "name": "Realtime production"
+        "name": "Production power"
       },
       "realtime_home_consumption": {
-        "name": "Realtime home consumption"
+        "name": "Home power"
       },
       "realtime_grid_power": {
-        "name": "Realtime grid power"
+        "name": "Grid power"
+      },
+      "realtime_grid_import_power": {
+        "name": "Grid import power"
+      },
+      "realtime_grid_export_power": {
+        "name": "Grid export power"
       },
       "realtime_battery_power": {
-        "name": "Realtime battery power"
+        "name": "Battery power"
+      },
+      "realtime_battery_charge_power": {
+        "name": "Battery charge power"
+      },
+      "realtime_battery_discharge_power": {
+        "name": "Battery discharge power"
       },
       "realtime_load_power": {
-        "name": "Realtime load power"
+        "name": "Load power"
       },
       "realtime_pwm_power": {
-        "name": "Realtime PWM power"
+        "name": "PWM power"
       },
       "realtime_battery_soc": {
-        "name": "Realtime battery SOC"
+        "name": "Battery SOC"
       },
       "realtime_battery_temperature": {
-        "name": "Realtime battery temperature"
+        "name": "Battery temperature"
       },
       "realtime_wallbox_power": {
-        "name": "Realtime wallbox power"
+        "name": "Wallbox power"
       },
       "realtime_wallbox_energy": {
-        "name": "Realtime wallbox energy"
+        "name": "Wallbox energy"
       },
       "realtime_updated": {
-        "name": "Realtime updated"
+        "name": "Updated"
       },
       "energy_solar_energy_today": {
-        "name": "Energy solar energy today"
+        "name": "Solar energy today"
       },
       "energy_home_consumption_today": {
-        "name": "Energy home consumption today"
+        "name": "Home consumption today"
       },
       "energy_grid_import_today": {
-        "name": "Energy grid import today"
+        "name": "Grid import today"
       },
       "energy_grid_export_today": {
-        "name": "Energy grid export today"
+        "name": "Grid export today"
       },
       "energy_battery_charged_today": {
-        "name": "Energy battery charged today"
+        "name": "Battery charged today"
       },
       "energy_battery_discharged_today": {
-        "name": "Energy battery discharged today"
+        "name": "Battery discharged today"
       },
       "energy_pwm_today": {
-        "name": "Energy PWM today"
+        "name": "PWM today"
       },
       "energy_load_today": {
-        "name": "Energy load today"
+        "name": "Load today"
       },
       "energy_bucket_date": {
-        "name": "Energy bucket date"
+        "name": "Bucket date"
       },
       "advanced_average_production": {
-        "name": "Advanced average production"
+        "name": "Average production"
       },
       "advanced_average_home_consumption": {
-        "name": "Advanced average home consumption"
+        "name": "Average home consumption"
       },
       "advanced_average_grid_power": {
-        "name": "Advanced average grid power"
+        "name": "Average grid power"
       },
       "advanced_average_battery_power": {
-        "name": "Advanced average battery power"
+        "name": "Average battery power"
       },
       "advanced_average_load_power": {
-        "name": "Advanced average load power"
+        "name": "Average load power"
       },
       "advanced_average_pwm_power": {
-        "name": "Advanced average PWM power"
+        "name": "Average PWM power"
       },
       "advanced_battery_voltage": {
-        "name": "Advanced battery voltage"
+        "name": "Battery voltage"
       },
       "advanced_battery_current": {
-        "name": "Advanced battery current"
+        "name": "Battery current"
       },
       "advanced_load_current": {
-        "name": "Advanced load current"
+        "name": "Load current"
       },
       "advanced_pwm_current": {
-        "name": "Advanced PWM current"
+        "name": "PWM current"
       },
       "advanced_battery_cycles": {
-        "name": "Advanced battery cycles"
+        "name": "Battery cycles"
       },
       "advanced_battery_temperature": {
-        "name": "Advanced battery temperature"
+        "name": "Battery temperature"
       },
       "advanced_internal_temperature": {
-        "name": "Advanced internal temperature"
+        "name": "Internal temperature"
       },
       "advanced_battery_soc": {
-        "name": "Advanced battery SOC"
+        "name": "Battery SOC"
       },
       "advanced_ac_input_voltage": {
-        "name": "Advanced AC input voltage"
+        "name": "AC input voltage"
       },
       "advanced_ac_input_current": {
-        "name": "Advanced AC input current"
+        "name": "AC input current"
       },
       "advanced_ac_output_voltage": {
-        "name": "Advanced AC output voltage"
+        "name": "AC output voltage"
       },
       "advanced_ac_output_current": {
-        "name": "Advanced AC output current"
+        "name": "AC output current"
       },
       "advanced_ac_input_frequency": {
-        "name": "Advanced AC input frequency"
+        "name": "AC input frequency"
       },
       "advanced_ac_output_frequency": {
-        "name": "Advanced AC output frequency"
+        "name": "AC output frequency"
       },
       "advanced_bucket_time": {
-        "name": "Advanced bucket time"
+        "name": "Bucket time"
+      },
+      "modbus_pv_power": {
+        "name": "PV power"
+      },
+      "modbus_home_power": {
+        "name": "Home power"
+      },
+      "modbus_grid_power": {
+        "name": "Grid power"
+      },
+      "modbus_grid_import_power": {
+        "name": "Grid import power"
+      },
+      "modbus_grid_export_power": {
+        "name": "Grid export power"
+      },
+      "modbus_grid_l1_power": {
+        "name": "Grid L1 power"
+      },
+      "modbus_grid_l2_power": {
+        "name": "Grid L2 power"
+      },
+      "modbus_grid_l3_power": {
+        "name": "Grid L3 power"
+      },
+      "modbus_battery_power": {
+        "name": "Battery power"
+      },
+      "modbus_battery_charge_power": {
+        "name": "Battery charge power"
+      },
+      "modbus_battery_discharge_power": {
+        "name": "Battery discharge power"
+      },
+      "modbus_battery_soc": {
+        "name": "Battery SOC"
+      },
+      "modbus_battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "modbus_battery_temperature": {
+        "name": "Battery temperature"
+      },
+      "modbus_ac_input_voltage": {
+        "name": "AC input voltage"
+      },
+      "modbus_ac_output_voltage": {
+        "name": "AC output voltage"
+      },
+      "modbus_pv_energy_total": {
+        "name": "PV energy total"
+      },
+      "modbus_home_energy_total": {
+        "name": "Home energy total"
+      },
+      "modbus_battery_charge_energy_total": {
+        "name": "Battery charge energy total"
+      },
+      "modbus_grid_import_energy_total": {
+        "name": "Grid import energy total"
+      },
+      "modbus_grid_export_energy_total": {
+        "name": "Grid export energy total"
+      },
+      "modbus_battery_discharge_energy_total": {
+        "name": "Battery discharge energy total"
       }
     }
   },
@@ -211,6 +365,12 @@
     },
     "unexpected_response": {
       "message": "MyLeonardo returned an unexpected response."
+    }
+  },
+  "issues": {
+    "endpoint_unavailable": {
+      "title": "MyLeonardo endpoint unavailable",
+      "description": "The MyLeonardo endpoint `{endpoint}` has failed several updates in a row. Check the MyLeonardo cloud service, local network connectivity, or the configured connection details. This issue is cleared automatically after the endpoint updates successfully."
     }
   }
 }

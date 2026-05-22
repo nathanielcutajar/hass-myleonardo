@@ -23,32 +23,20 @@ async def async_get_config_entry_diagnostics(
     entry_data["title"] = "**REDACTED**"
     entry_data["unique_id"] = "**REDACTED**"
 
+    coordinators = {}
+
+    for name in ("realtime", "energy", "advanced"):
+        coordinator = getattr(entry.runtime_data, name)
+
+        if coordinator is None:
+            continue
+
+        coordinators[name] = {
+            "last_update_success": coordinator.last_update_success,
+            "update_interval": str(coordinator.update_interval),
+        }
+
     return {
         "entry": entry_data,
-        "coordinators": {
-            "realtime": {
-                "last_update_success": (
-                    entry.runtime_data.realtime.last_update_success
-                ),
-                "update_interval": str(
-                    entry.runtime_data.realtime.update_interval
-                ),
-            },
-            "energy": {
-                "last_update_success": (
-                    entry.runtime_data.energy.last_update_success
-                ),
-                "update_interval": str(
-                    entry.runtime_data.energy.update_interval
-                ),
-            },
-            "advanced": {
-                "last_update_success": (
-                    entry.runtime_data.advanced.last_update_success
-                ),
-                "update_interval": str(
-                    entry.runtime_data.advanced.update_interval
-                ),
-            },
-        },
+        "coordinators": coordinators,
     }

@@ -4,6 +4,7 @@ from .coordinator import (
     MyLeonardoAdvancedCoordinator,
     MyLeonardoCoordinator,
     MyLeonardoEnergyCoordinator,
+    MyLeonardoModbusCoordinator,
 )
 
 
@@ -11,6 +12,6 @@ from .coordinator import (
 class MyLeonardoRuntimeData:
     """Runtime-only data attached to the config entry."""
 
-    realtime: MyLeonardoCoordinator
-    energy: MyLeonardoEnergyCoordinator
-    advanced: MyLeonardoAdvancedCoordinator
+    realtime: MyLeonardoCoordinator | MyLeonardoModbusCoordinator | None = None
+    energy: MyLeonardoEnergyCoordinator | None = None
+    advanced: MyLeonardoAdvancedCoordinator | None = None

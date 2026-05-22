@@ -86,9 +86,19 @@ def get_latest_list_value(data, key):
     return latest.get(key)
 
 
+def _transform_number(value, value_type):
+    if value_type == "positive":
+        return max(value, 0)
+
+    if value_type == "negative_abs":
+        return abs(min(value, 0))
+
+    return value
+
+
 def get_sensor_value(data, key, source, scale=1, value_type="number"):
     """Convert an API field into the final Home Assistant native value."""
-    if source == "realtime":
+    if source in ("realtime", "modbus"):
         value = get_realtime_value(data, key)
     else:
         value = get_latest_list_value(data, key)
@@ -104,4 +114,31 @@ def get_sensor_value(data, key, source, scale=1, value_type="number"):
     if number is None:
         return None
 
-    return round(number * scale, 3)
+    return round(_transform_number(number, value_type) * scale, 3)
+
+
+def get_binary_sensor_value(
+    data,
+    key,
+    source,
+    value_type,
+    threshold=0,
+):
+    """Convert a signed power field into an on/off status value."""
+    if source in ("realtime", "modbus"):
+        value = get_realtime_value(data, key)
+    else:
+        value = get_latest_list_value(data, key)
+
+    number = as_float(value)
+
+    if number is None:
+        return None
+
+    if value_type == "above":
+        return number > threshold
+
+    if value_type == "below":
+        return number < -threshold
+
+    return None
