@@ -5,10 +5,10 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.const import EntityCategory
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_MODBUS_HOST,
-    CONF_PLANT_KEY,
-    DOMAIN,
+from .helpers import (
+    get_device_identifier,
+    get_device_info,
+    get_entity_unique_id,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,10 +19,7 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ):
-    device_identifier = entry.data.get(
-        CONF_PLANT_KEY,
-        entry.data.get(CONF_MODBUS_HOST),
-    )
+    device_identifier = get_device_identifier(entry)
 
     async_add_entities([
         MyLeonardoRefreshButton(
@@ -42,28 +39,23 @@ class MyLeonardoRefreshButton(ButtonEntity):
         self._entry = entry
         self._device_identifier = device_identifier
         self._last_manual_refresh = {}
-        self._attr_unique_id = f"{device_identifier}_refresh".lower()
+        self._attr_unique_id = get_entity_unique_id(
+            device_identifier,
+            "button",
+            "refresh",
+        )
 
     @property
     def device_info(self):
-        # Attach the refresh control to the same device as the sensors.
-        return {
-            "identifiers": {
-                (
-                    DOMAIN,
-                    self._device_identifier,
-                )
-            },
-            "manufacturer": "Western Co.",
-            "name": f"MyLeonardo Solar {self._device_identifier}",
-            "model": "Leonardo",
-        }
+        return get_device_info(self._device_identifier)
 
     async def async_press(self):
         coordinators = (
-            self._entry.runtime_data.realtime,
-            self._entry.runtime_data.energy,
-            self._entry.runtime_data.advanced,
+            getattr(self._entry.runtime_data, "realtime", None),
+            getattr(self._entry.runtime_data, "energy", None),
+            getattr(self._entry.runtime_data, "energy_monthly", None),
+            getattr(self._entry.runtime_data, "advanced", None),
+            getattr(self._entry.runtime_data, "advanced_complete", None),
         )
         now = dt_util.utcnow()
 

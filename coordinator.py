@@ -23,6 +23,7 @@ class MyLeonardoBaseCoordinator(
         api,
         name,
         update_interval,
+        reauth_on_auth_error=True,
     ):
         super().__init__(
             hass,
@@ -38,6 +39,7 @@ class MyLeonardoBaseCoordinator(
         self._was_unavailable = False
         self._failure_count = 0
         self._repair_issue_created = False
+        self._reauth_on_auth_error = reauth_on_auth_error
 
     async def _async_fetch_data(self):
         raise NotImplementedError
@@ -92,8 +94,12 @@ class MyLeonardoBaseCoordinator(
         try:
             data = await self._async_fetch_data()
         except MyLeonardoAuthError as err:
-            # Tell Home Assistant to start the reauth flow.
-            raise ConfigEntryAuthFailed from err
+            if self._reauth_on_auth_error:
+                # Tell Home Assistant to start the reauth flow for core data.
+                raise ConfigEntryAuthFailed from err
+
+            await self._async_handle_unavailable(err)
+            raise UpdateFailed(str(err)) from err
         except MyLeonardoApiError as err:
             await self._async_handle_unavailable(err)
             raise UpdateFailed(str(err)) from err
@@ -130,10 +136,27 @@ class MyLeonardoEnergyCoordinator(
             api,
             f"{DOMAIN}_energy",
             update_interval,
+            reauth_on_auth_error=False,
         )
 
     async def _async_fetch_data(self):
         return await self.api.async_get_energy()
+
+
+class MyLeonardoMonthlyEnergyCoordinator(
+    MyLeonardoBaseCoordinator,
+):
+    def __init__(self, hass, api, update_interval):
+        super().__init__(
+            hass,
+            api,
+            f"{DOMAIN}_energy_monthly",
+            update_interval,
+            reauth_on_auth_error=False,
+        )
+
+    async def _async_fetch_data(self):
+        return await self.api.async_get_monthly_energy()
 
 
 class MyLeonardoAdvancedCoordinator(
@@ -145,10 +168,27 @@ class MyLeonardoAdvancedCoordinator(
             api,
             f"{DOMAIN}_advanced",
             update_interval,
+            reauth_on_auth_error=False,
         )
 
     async def _async_fetch_data(self):
         return await self.api.async_get_advanced()
+
+
+class MyLeonardoAdvancedCompleteCoordinator(
+    MyLeonardoBaseCoordinator,
+):
+    def __init__(self, hass, api, update_interval):
+        super().__init__(
+            hass,
+            api,
+            f"{DOMAIN}_advanced_complete",
+            update_interval,
+            reauth_on_auth_error=False,
+        )
+
+    async def _async_fetch_data(self):
+        return await self.api.async_get_advanced_complete()
 
 
 class MyLeonardoModbusCoordinator(

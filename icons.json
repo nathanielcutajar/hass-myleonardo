@@ -104,6 +104,33 @@
       "energy_bucket_date": {
         "default": "mdi:calendar"
       },
+      "energy_solar_energy_month": {
+        "default": "mdi:solar-power"
+      },
+      "energy_home_consumption_month": {
+        "default": "mdi:home-lightning-bolt"
+      },
+      "energy_grid_import_month": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "energy_grid_export_month": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "energy_battery_charged_month": {
+        "default": "mdi:battery-plus"
+      },
+      "energy_battery_discharged_month": {
+        "default": "mdi:battery-minus"
+      },
+      "energy_pwm_month": {
+        "default": "mdi:sine-wave"
+      },
+      "energy_load_month": {
+        "default": "mdi:power-plug"
+      },
+      "energy_month_bucket_date": {
+        "default": "mdi:calendar-month"
+      },
       "advanced_average_production": {
         "default": "mdi:solar-power-variant"
       },
@@ -154,6 +181,36 @@
       },
       "advanced_bucket_time": {
         "default": "mdi:clock-outline"
+      },
+      "advanced_complete_battery_soh": {
+        "default": "mdi:battery-heart"
+      },
+      "advanced_complete_battery_eoc_voltage": {
+        "default": "mdi:battery"
+      },
+      "advanced_complete_inverter_power": {
+        "default": "mdi:lightning-bolt"
+      },
+      "advanced_complete_inverter_battery_voltage": {
+        "default": "mdi:battery"
+      },
+      "advanced_complete_inverter_battery_current": {
+        "default": "mdi:current-dc"
+      },
+      "advanced_complete_wrm_flag": {
+        "default": "mdi:flag"
+      },
+      "advanced_complete_wbm_flag": {
+        "default": "mdi:flag"
+      },
+      "advanced_complete_wrd_flag": {
+        "default": "mdi:flag"
+      },
+      "advanced_complete_lk3_flag": {
+        "default": "mdi:flag"
+      },
+      "advanced_complete_wrd_system_charge": {
+        "default": "mdi:battery-charging"
       },
       "modbus_pv_power": {
         "default": "mdi:solar-power-variant"

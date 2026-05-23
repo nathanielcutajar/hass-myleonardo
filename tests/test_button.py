@@ -48,11 +48,20 @@ class FakeCoordinator:
 
 
 class FakeEntry:
-    def __init__(self, realtime, energy=None, advanced=None):
+    def __init__(
+        self,
+        realtime,
+        energy=None,
+        energy_monthly=None,
+        advanced=None,
+        advanced_complete=None,
+    ):
         self.runtime_data = types.SimpleNamespace(
             realtime=realtime,
             energy=energy,
+            energy_monthly=energy_monthly,
             advanced=advanced,
+            advanced_complete=advanced_complete,
         )
 
 
@@ -62,9 +71,17 @@ class MyLeonardoRefreshButtonTest(unittest.TestCase):
         button_module = load_button_module(now)
         realtime = FakeCoordinator("realtime", 30)
         energy = FakeCoordinator("energy", 300)
+        energy_monthly = FakeCoordinator("energy_monthly", 300)
         advanced = FakeCoordinator("advanced", 120)
+        advanced_complete = FakeCoordinator("advanced_complete", 120)
         button = button_module.MyLeonardoRefreshButton(
-            FakeEntry(realtime, energy, advanced),
+            FakeEntry(
+                realtime,
+                energy,
+                energy_monthly,
+                advanced,
+                advanced_complete,
+            ),
             "plant",
         )
 
@@ -72,7 +89,9 @@ class MyLeonardoRefreshButtonTest(unittest.TestCase):
 
         self.assertEqual(realtime.refresh_count, 1)
         self.assertEqual(energy.refresh_count, 1)
+        self.assertEqual(energy_monthly.refresh_count, 1)
         self.assertEqual(advanced.refresh_count, 1)
+        self.assertEqual(advanced_complete.refresh_count, 1)
 
     def test_press_skips_repeated_refresh_inside_interval(self):
         now = [datetime(2026, 5, 22, 12, 0, 0)]

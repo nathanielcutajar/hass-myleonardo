@@ -1,11 +1,11 @@
 {
   "domain": "myleonardo",
   "name": "MyLeonardo",
-  "version": "0.2.0",
+  "codeowners": ["@nathanielcutajar"],
   "config_flow": true,
   "documentation": "https://github.com/nathanielcutajar/hass-myleonardo",
-  "issue_tracker": "https://github.com/nathanielcutajar/hass-myleonardo/issues",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/nathanielcutajar/hass-myleonardo/issues",
   "requirements": [],
-  "codeowners": ["@nathanielcutajar"]
+  "version": "0.3.0"
 }

@@ -128,7 +128,7 @@ class MyLeonardoMetadataTest(unittest.TestCase):
             for item in load_descriptions()
         }
 
-        for name in ("realtime", "energy", "advanced"):
+        for name in ("realtime", "energy", "advanced", "energy_monthly"):
             data = json.loads(
                 (
                     ROOT
@@ -146,13 +146,27 @@ class MyLeonardoMetadataTest(unittest.TestCase):
 
             self.assertEqual(missing, set(), name)
 
-    def test_unique_id_template_includes_source(self):
-        sensor = (ROOT / "sensor.py").read_text(encoding="utf-8")
+        advanced_complete = json.loads(
+            (
+                ROOT
+                / "tests"
+                / "fixtures"
+                / "advanced_complete.json"
+            ).read_text(encoding="utf-8")
+        )["data"][0]
+        selected = {
+            item["key"]
+            for item in load_descriptions()
+            if item["source"] == "advanced_complete"
+        }
 
-        self.assertRegex(
-            sensor,
-            re.escape("{plant_key}_{description.source}_{description.key}"),
-        )
+        self.assertEqual(selected - set(advanced_complete), set())
+
+    def test_unique_id_template_includes_source(self):
+        helpers = (ROOT / "helpers.py").read_text(encoding="utf-8")
+
+        self.assertIn("get_entity_unique_id", helpers)
+        self.assertIn("{device_identifier}_{source}_{key}", helpers)
 
     def test_refresh_button_platform_is_registered(self):
         init = (ROOT / "__init__.py").read_text(encoding="utf-8")
@@ -206,7 +220,7 @@ class MyLeonardoMetadataTest(unittest.TestCase):
         invalid = [
             item["key"]
             for item in load_descriptions()
-            if item.get("source") == "energy"
+            if item.get("source") in ("energy", "energy_monthly")
             and item.get("device_class") == "ENERGY"
             and item.get("state_class") != "TOTAL_INCREASING"
         ]
@@ -227,6 +241,18 @@ class MyLeonardoMetadataTest(unittest.TestCase):
         self.assertTrue(
             all("source_key" in item for item in derived)
         )
+
+    def test_diagnostics_cover_all_cloud_coordinators(self):
+        diagnostics = (ROOT / "diagnostics.py").read_text(encoding="utf-8")
+
+        self.assertIn("energy_monthly", diagnostics)
+        self.assertIn("advanced_complete", diagnostics)
+
+    def test_runtime_data_covers_extended_cloud_coordinators(self):
+        runtime_data = (ROOT / "runtime_data.py").read_text(encoding="utf-8")
+
+        self.assertIn("energy_monthly", runtime_data)
+        self.assertIn("advanced_complete", runtime_data)
 
 
 if __name__ == "__main__":

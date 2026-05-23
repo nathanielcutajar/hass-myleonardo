@@ -22,7 +22,7 @@
       },
       "modbus": {
         "title": "MyLeonardo local Modbus TCP",
-        "description": "Enter the local W-Hi-Stick or inverter network details.",
+        "description": "Enter the local Modbus TCP device network details.",
         "data": {
           "modbus_host": "Host",
           "modbus_port": "Port"
@@ -95,7 +95,9 @@
         "data": {
           "enable_realtime_sensors": "Enable realtime sensors",
           "enable_energy_sensors": "Enable energy sensors",
+          "enable_monthly_energy_sensors": "Enable monthly energy sensors",
           "enable_advanced_sensors": "Enable advanced sensors",
+          "enable_advanced_complete_sensors": "Enable advanced-complete sensors",
           "realtime_scan_interval": "Realtime scan interval in seconds",
           "energy_scan_interval": "Energy scan interval in seconds",
           "advanced_scan_interval": "Advanced scan interval in seconds"
@@ -103,7 +105,9 @@
         "data_description": {
           "enable_realtime_sensors": "Create entities for the realtime endpoint.",
           "enable_energy_sensors": "Create entities for the energy endpoint.",
+          "enable_monthly_energy_sensors": "Create optional monthly energy entities. This uses an additional request to the cloud energy endpoint.",
           "enable_advanced_sensors": "Create diagnostic entities for the advanced endpoint.",
+          "enable_advanced_complete_sensors": "Create optional advanced-complete diagnostic entities. This uses an additional request to the cloud advanced endpoint.",
           "realtime_scan_interval": "Minimum 5 seconds according to the MyLeonardo API rate limit. Local Modbus mode allows a minimum of 1 second and defaults to 5 seconds.",
           "energy_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit.",
           "advanced_scan_interval": "Minimum 20 seconds according to the MyLeonardo API rate limit."
@@ -222,6 +226,33 @@
       "energy_bucket_date": {
         "name": "Bucket date"
       },
+      "energy_solar_energy_month": {
+        "name": "Solar energy this month"
+      },
+      "energy_home_consumption_month": {
+        "name": "Home consumption this month"
+      },
+      "energy_grid_import_month": {
+        "name": "Grid import this month"
+      },
+      "energy_grid_export_month": {
+        "name": "Grid export this month"
+      },
+      "energy_battery_charged_month": {
+        "name": "Battery charged this month"
+      },
+      "energy_battery_discharged_month": {
+        "name": "Battery discharged this month"
+      },
+      "energy_pwm_month": {
+        "name": "PWM this month"
+      },
+      "energy_load_month": {
+        "name": "Load this month"
+      },
+      "energy_month_bucket_date": {
+        "name": "Month bucket date"
+      },
       "advanced_average_production": {
         "name": "Average production"
       },
@@ -284,6 +315,36 @@
       },
       "advanced_bucket_time": {
         "name": "Bucket time"
+      },
+      "advanced_complete_battery_soh": {
+        "name": "Battery SOH"
+      },
+      "advanced_complete_battery_eoc_voltage": {
+        "name": "Battery end-of-charge voltage"
+      },
+      "advanced_complete_inverter_power": {
+        "name": "Inverter power"
+      },
+      "advanced_complete_inverter_battery_voltage": {
+        "name": "Inverter battery voltage"
+      },
+      "advanced_complete_inverter_battery_current": {
+        "name": "Inverter battery current"
+      },
+      "advanced_complete_wrm_flag": {
+        "name": "WRM flag"
+      },
+      "advanced_complete_wbm_flag": {
+        "name": "WBM flag"
+      },
+      "advanced_complete_wrd_flag": {
+        "name": "WRD flag"
+      },
+      "advanced_complete_lk3_flag": {
+        "name": "LK3 flag"
+      },
+      "advanced_complete_wrd_system_charge": {
+        "name": "WRD system charge"
       },
       "modbus_pv_power": {
         "name": "PV power"

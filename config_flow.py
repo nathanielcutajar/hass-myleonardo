@@ -31,7 +31,9 @@ from .const import (
     CONF_MODBUS_PORT,
     CONF_ADVANCED_SCAN_INTERVAL,
     CONF_ENABLE_ADVANCED_SENSORS,
+    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS,
     CONF_ENABLE_ENERGY_SENSORS,
+    CONF_ENABLE_MONTHLY_ENERGY_SENSORS,
     CONF_ENABLE_REALTIME_SENSORS,
     CONF_ENERGY_SCAN_INTERVAL,
     CONF_REALTIME_SCAN_INTERVAL,
@@ -40,7 +42,9 @@ from .const import (
     CONNECTION_TYPE_MODBUS,
     DEFAULT_ADVANCED_SCAN_INTERVAL,
     DEFAULT_ENABLE_ADVANCED_SENSORS,
+    DEFAULT_ENABLE_ADVANCED_COMPLETE_SENSORS,
     DEFAULT_ENABLE_ENERGY_SENSORS,
+    DEFAULT_ENABLE_MONTHLY_ENERGY_SENSORS,
     DEFAULT_ENABLE_REALTIME_SENSORS,
     DEFAULT_ENERGY_SCAN_INTERVAL,
     DEFAULT_MODBUS_SCAN_INTERVAL,
@@ -85,7 +89,10 @@ CONNECTION_TYPE_SELECTOR = SelectSelector(
 OPTIONS_FIELDS = {
     CONF_ENABLE_REALTIME_SENSORS: "Enable realtime sensors",
     CONF_ENABLE_ENERGY_SENSORS: "Enable energy sensors",
+    CONF_ENABLE_MONTHLY_ENERGY_SENSORS: "Enable monthly energy sensors",
     CONF_ENABLE_ADVANCED_SENSORS: "Enable advanced sensors",
+    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS:
+        "Enable advanced-complete sensors",
     CONF_REALTIME_SCAN_INTERVAL: "Realtime scan interval in seconds",
     CONF_ENERGY_SCAN_INTERVAL: "Energy scan interval in seconds",
     CONF_ADVANCED_SCAN_INTERVAL: "Advanced scan interval in seconds",
@@ -99,7 +106,11 @@ MODBUS_OPTIONS_FIELDS = {
 HYBRID_OPTIONS_FIELDS = {
     CONF_ENABLE_REALTIME_SENSORS: "Enable local Modbus sensors",
     CONF_ENABLE_ENERGY_SENSORS: "Enable cloud energy sensors",
+    CONF_ENABLE_MONTHLY_ENERGY_SENSORS:
+        "Enable cloud monthly energy sensors",
     CONF_ENABLE_ADVANCED_SENSORS: "Enable cloud advanced sensors",
+    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS:
+        "Enable cloud advanced-complete sensors",
     CONF_REALTIME_SCAN_INTERVAL: "Local Modbus scan interval in seconds",
     CONF_ENERGY_SCAN_INTERVAL: "Cloud energy scan interval in seconds",
     CONF_ADVANCED_SCAN_INTERVAL: "Cloud advanced scan interval in seconds",
@@ -605,6 +616,20 @@ class MyLeonardoOptionsFlow(config_entries.OptionsFlow):
                 ),
             ): BooleanSelector(),
             vol.Required(
+                OPTIONS_FIELDS[CONF_ENABLE_MONTHLY_ENERGY_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_MONTHLY_ENERGY_SENSORS,
+                    DEFAULT_ENABLE_MONTHLY_ENERGY_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                OPTIONS_FIELDS[CONF_ENABLE_ADVANCED_COMPLETE_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS,
+                    DEFAULT_ENABLE_ADVANCED_COMPLETE_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
                 OPTIONS_FIELDS[CONF_REALTIME_SCAN_INTERVAL],
                 default=options.get(
                     CONF_REALTIME_SCAN_INTERVAL,
@@ -679,6 +704,22 @@ class MyLeonardoOptionsFlow(config_entries.OptionsFlow):
                 default=options.get(
                     CONF_ENABLE_ADVANCED_SENSORS,
                     DEFAULT_ENABLE_ADVANCED_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[CONF_ENABLE_MONTHLY_ENERGY_SENSORS],
+                default=options.get(
+                    CONF_ENABLE_MONTHLY_ENERGY_SENSORS,
+                    DEFAULT_ENABLE_MONTHLY_ENERGY_SENSORS,
+                ),
+            ): BooleanSelector(),
+            vol.Required(
+                HYBRID_OPTIONS_FIELDS[
+                    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS
+                ],
+                default=options.get(
+                    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS,
+                    DEFAULT_ENABLE_ADVANCED_COMPLETE_SENSORS,
                 ),
             ): BooleanSelector(),
             vol.Required(

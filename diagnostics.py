@@ -25,7 +25,13 @@ async def async_get_config_entry_diagnostics(
 
     coordinators = {}
 
-    for name in ("realtime", "energy", "advanced"):
+    for name in (
+        "realtime",
+        "energy",
+        "energy_monthly",
+        "advanced",
+        "advanced_complete",
+    ):
         coordinator = getattr(entry.runtime_data, name)
 
         if coordinator is None:

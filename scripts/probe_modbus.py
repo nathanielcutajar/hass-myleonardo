@@ -12,9 +12,9 @@ from modbus_api import MyLeonardoModbusApi  # noqa: E402
 
 async def async_main():
     parser = argparse.ArgumentParser(
-        description="Probe a MyLeonardo W-Hi-Stick Modbus TCP endpoint."
+        description="Probe a MyLeonardo local Modbus TCP endpoint."
     )
-    parser.add_argument("host", help="W-Hi-Stick or inverter IP address")
+    parser.add_argument("host", help="Local Modbus TCP device IP address")
     parser.add_argument("--port", type=int, default=502)
     parser.add_argument("--unit-id", type=int, default=1)
     args = parser.parse_args()

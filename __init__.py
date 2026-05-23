@@ -8,28 +8,32 @@ from .api import MyLeonardoApi
 from .coordinator import (
     MyLeonardoCoordinator,
     MyLeonardoEnergyCoordinator,
+    MyLeonardoMonthlyEnergyCoordinator,
     MyLeonardoAdvancedCoordinator,
+    MyLeonardoAdvancedCompleteCoordinator,
     MyLeonardoModbusCoordinator,
 )
 from .const import (
-    DOMAIN,
     CONF_API_KEY,
     CONF_PLANT_KEY,
-    CONF_CONNECTION_TYPE,
     CONF_MODBUS_HOST,
     CONF_MODBUS_PORT,
     CONF_ADVANCED_SCAN_INTERVAL,
+    CONF_ENABLE_ADVANCED_COMPLETE_SENSORS,
+    CONF_ENABLE_MONTHLY_ENERGY_SENSORS,
     CONF_ENERGY_SCAN_INTERVAL,
     CONF_REALTIME_SCAN_INTERVAL,
-    CONNECTION_TYPE_CLOUD,
     CONNECTION_TYPE_HYBRID,
     CONNECTION_TYPE_MODBUS,
     DEFAULT_MODBUS_PORT,
     DEFAULT_MODBUS_SCAN_INTERVAL,
     DEFAULT_ADVANCED_SCAN_INTERVAL,
+    DEFAULT_ENABLE_ADVANCED_COMPLETE_SENSORS,
+    DEFAULT_ENABLE_MONTHLY_ENERGY_SENSORS,
     DEFAULT_ENERGY_SCAN_INTERVAL,
     DEFAULT_REALTIME_SCAN_INTERVAL,
 )
+from .helpers import get_connection_type
 from .modbus_api import MyLeonardoModbusApi
 from .runtime_data import MyLeonardoRuntimeData
 
@@ -38,6 +42,7 @@ PLATFORMS = [
     Platform.BUTTON,
     Platform.SENSOR,
 ]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -50,150 +55,157 @@ async def async_setup_entry(
         )
 
     session = async_get_clientsession(hass)
-    connection_type = entry.data.get(
-        CONF_CONNECTION_TYPE,
-        CONNECTION_TYPE_CLOUD,
-    )
+    connection_type = get_connection_type(entry)
 
     if connection_type == CONNECTION_TYPE_MODBUS:
-        api = MyLeonardoModbusApi(
-            entry.data[CONF_MODBUS_HOST],
-            entry.data.get(CONF_MODBUS_PORT, DEFAULT_MODBUS_PORT),
-        )
-
-        realtime_coordinator = MyLeonardoModbusCoordinator(
+        realtime_coordinator = _create_modbus_coordinator(hass, entry)
+        await _first_refresh(realtime_coordinator)
+        return await _finish_setup(
             hass,
-            api,
-            entry.options.get(
-                CONF_REALTIME_SCAN_INTERVAL,
-                DEFAULT_MODBUS_SCAN_INTERVAL,
-            ),
-        )
-
-        await realtime_coordinator.async_config_entry_first_refresh()
-
-        entry.runtime_data = MyLeonardoRuntimeData(
-            realtime=realtime_coordinator,
-        )
-
-        entry.async_on_unload(
-            entry.add_update_listener(async_reload_entry)
-        )
-
-        await hass.config_entries.async_forward_entry_setups(
             entry,
-            PLATFORMS,
+            MyLeonardoRuntimeData(realtime=realtime_coordinator),
         )
-
-        return True
 
     if connection_type == CONNECTION_TYPE_HYBRID:
-        cloud_api = MyLeonardoApi(
+        realtime_coordinator = _create_modbus_coordinator(hass, entry)
+        (
+            energy_coordinator,
+            energy_monthly_coordinator,
+            advanced_coordinator,
+            advanced_complete_coordinator,
+        ) = _create_cloud_history_coordinators(hass, session, entry)
+    else:
+        realtime_coordinator = _create_cloud_realtime_coordinator(
+            hass,
             session,
-            entry.data[CONF_API_KEY],
-            entry.data[CONF_PLANT_KEY],
+            entry,
         )
-        modbus_api = MyLeonardoModbusApi(
-            entry.data[CONF_MODBUS_HOST],
-            entry.data.get(CONF_MODBUS_PORT, DEFAULT_MODBUS_PORT),
-        )
+        (
+            energy_coordinator,
+            energy_monthly_coordinator,
+            advanced_coordinator,
+            advanced_complete_coordinator,
+        ) = _create_cloud_history_coordinators(hass, session, entry)
 
-        realtime_coordinator = MyLeonardoModbusCoordinator(
-            hass,
-            modbus_api,
-            entry.options.get(
-                CONF_REALTIME_SCAN_INTERVAL,
-                DEFAULT_MODBUS_SCAN_INTERVAL,
-            ),
-        )
-
-        energy_coordinator = MyLeonardoEnergyCoordinator(
-            hass,
-            cloud_api,
-            entry.options.get(
-                CONF_ENERGY_SCAN_INTERVAL,
-                DEFAULT_ENERGY_SCAN_INTERVAL,
-            ),
-        )
-
-        advanced_coordinator = MyLeonardoAdvancedCoordinator(
-            hass,
-            cloud_api,
-            entry.options.get(
-                CONF_ADVANCED_SCAN_INTERVAL,
-                DEFAULT_ADVANCED_SCAN_INTERVAL,
-            ),
-        )
-
-        await realtime_coordinator.async_config_entry_first_refresh()
-        await energy_coordinator.async_config_entry_first_refresh()
-        await advanced_coordinator.async_config_entry_first_refresh()
-
-        entry.runtime_data = MyLeonardoRuntimeData(
+    await _first_refresh(
+        realtime_coordinator,
+        energy_coordinator,
+        advanced_coordinator,
+    )
+    return await _finish_setup(
+        hass,
+        entry,
+        MyLeonardoRuntimeData(
             realtime=realtime_coordinator,
             energy=energy_coordinator,
+            energy_monthly=energy_monthly_coordinator,
             advanced=advanced_coordinator,
-        )
+            advanced_complete=advanced_complete_coordinator,
+        ),
+    )
 
-        entry.async_on_unload(
-            entry.add_update_listener(async_reload_entry)
-        )
 
-        await hass.config_entries.async_forward_entry_setups(
-            entry,
-            PLATFORMS,
-        )
-
-        return True
-
-    api = MyLeonardoApi(
+def _create_cloud_api(session, entry):
+    return MyLeonardoApi(
         session,
         entry.data[CONF_API_KEY],
         entry.data[CONF_PLANT_KEY],
     )
 
-    realtime_coordinator = (
-        MyLeonardoCoordinator(
-            hass,
-            api,
-            entry.options.get(
-                CONF_REALTIME_SCAN_INTERVAL,
-                DEFAULT_REALTIME_SCAN_INTERVAL,
-            ),
-        )
+
+def _create_modbus_api(entry):
+    return MyLeonardoModbusApi(
+        entry.data[CONF_MODBUS_HOST],
+        entry.data.get(CONF_MODBUS_PORT, DEFAULT_MODBUS_PORT),
     )
 
-    energy_coordinator = (
-        MyLeonardoEnergyCoordinator(
+
+def _create_modbus_coordinator(hass, entry):
+    return MyLeonardoModbusCoordinator(
+        hass,
+        _create_modbus_api(entry),
+        entry.options.get(
+            CONF_REALTIME_SCAN_INTERVAL,
+            DEFAULT_MODBUS_SCAN_INTERVAL,
+        ),
+    )
+
+
+def _create_cloud_realtime_coordinator(hass, session, entry):
+    return MyLeonardoCoordinator(
+        hass,
+        _create_cloud_api(session, entry),
+        entry.options.get(
+            CONF_REALTIME_SCAN_INTERVAL,
+            DEFAULT_REALTIME_SCAN_INTERVAL,
+        ),
+    )
+
+
+def _create_cloud_history_coordinators(hass, session, entry):
+    api = _create_cloud_api(session, entry)
+    options = entry.options
+    energy_monthly_coordinator = None
+    advanced_complete_coordinator = None
+
+    if options.get(
+        CONF_ENABLE_MONTHLY_ENERGY_SENSORS,
+        DEFAULT_ENABLE_MONTHLY_ENERGY_SENSORS,
+    ):
+        energy_monthly_coordinator = MyLeonardoMonthlyEnergyCoordinator(
             hass,
             api,
-            entry.options.get(
+            options.get(
                 CONF_ENERGY_SCAN_INTERVAL,
                 DEFAULT_ENERGY_SCAN_INTERVAL,
             ),
         )
-    )
 
-    advanced_coordinator = (
-        MyLeonardoAdvancedCoordinator(
+    if options.get(
+        CONF_ENABLE_ADVANCED_COMPLETE_SENSORS,
+        DEFAULT_ENABLE_ADVANCED_COMPLETE_SENSORS,
+    ):
+        advanced_complete_coordinator = MyLeonardoAdvancedCompleteCoordinator(
             hass,
             api,
-            entry.options.get(
+            options.get(
                 CONF_ADVANCED_SCAN_INTERVAL,
                 DEFAULT_ADVANCED_SCAN_INTERVAL,
             ),
         )
+
+    return (
+        MyLeonardoEnergyCoordinator(
+            hass,
+            api,
+            options.get(
+                CONF_ENERGY_SCAN_INTERVAL,
+                DEFAULT_ENERGY_SCAN_INTERVAL,
+            ),
+        ),
+        energy_monthly_coordinator,
+        MyLeonardoAdvancedCoordinator(
+            hass,
+            api,
+            options.get(
+                CONF_ADVANCED_SCAN_INTERVAL,
+                DEFAULT_ADVANCED_SCAN_INTERVAL,
+            ),
+        ),
+        advanced_complete_coordinator,
     )
 
-    await realtime_coordinator.async_config_entry_first_refresh()
-    await energy_coordinator.async_config_entry_first_refresh()
-    await advanced_coordinator.async_config_entry_first_refresh()
 
-    entry.runtime_data = MyLeonardoRuntimeData(
-        realtime=realtime_coordinator,
-        energy=energy_coordinator,
-        advanced=advanced_coordinator,
-    )
+async def _first_refresh(*coordinators):
+    for coordinator in coordinators:
+        if coordinator is None:
+            continue
+
+        await coordinator.async_config_entry_first_refresh()
+
+
+async def _finish_setup(hass, entry, runtime_data):
+    entry.runtime_data = runtime_data
 
     entry.async_on_unload(
         entry.add_update_listener(async_reload_entry)
