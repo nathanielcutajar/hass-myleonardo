@@ -15,4 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: home-assistant/actions/hassfest@master
+      - name: Prepare custom component layout
+        run: |
+          mkdir -p /tmp/hassfest/custom_components/myleonardo
+          rsync -a \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".coverage" \
+            --exclude ".pytest_cache" \
+            --exclude "__pycache__" \
+            --exclude "tests" \
+            ./ /tmp/hassfest/custom_components/myleonardo/
+      - name: Run hassfest
+        run: |
+          docker run --rm \
+            -v /tmp/hassfest:/github/workspace \
+            ghcr.io/home-assistant/hassfest
