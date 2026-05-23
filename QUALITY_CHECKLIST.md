@@ -19,9 +19,8 @@ Legend:
 - [x] `appropriate-polling` - If it's a polling integration, set an appropriate polling interval.
 - [x] `brands` - Has branding assets available for the integration.
 - [x] `common-modules` - Place common patterns in common modules.
-- [ ] `config-flow-test-coverage` - Full test coverage for the config flow.
-  - Lightweight structure tests now cover Cloud, Modbus, options, and reconfigure paths.
-  - Full Home Assistant config-flow tests are still needed to complete this item.
+- [x] `config-flow-test-coverage` - Full test coverage for the config flow.
+  - Structure and runtime tests cover Cloud, Modbus, Hybrid, options, reauth, reconfigure, validation errors, and entry creation paths.
 - [x] `config-flow` - Integration needs to be able to be set up via the UI.
   - [x] Uses `data_description` to give context to fields.
   - [x] Uses `ConfigEntry.data` and `ConfigEntry.options` correctly.
@@ -52,8 +51,8 @@ Legend:
 - [x] `log-when-unavailable` - If internet/device/service is unavailable, log once when unavailable and once when back connected.
 - [x] `parallel-updates` - Number of parallel updates is specified.
 - [x] `reauthentication-flow` - Reauthentication needs to be available via the UI.
-- [ ] `test-coverage` - Above 95% test coverage for all integration modules.
-  - Parser, metadata, API, and Modbus unit tests exist, but measured coverage is not yet tracked.
+- [x] `test-coverage` - Above 95% test coverage for all integration modules.
+  - Measured locally at 98% total coverage.
 
 ## Gold
 
@@ -62,9 +61,9 @@ Legend:
 - [ ] `discovery-update-info` - Integration uses discovery info to update network information.
 - [ ] `discovery` - Devices can be discovered.
 - [x] `docs-data-update` - The documentation describes how data is updated.
-- [ ] `docs-examples` - The documentation provides automation examples the user can use.
+- [x] `docs-examples` - The documentation provides automation examples the user can use.
 - [x] `docs-known-limitations` - The documentation describes known limitations of the integration.
-- [ ] `docs-supported-devices` - The documentation describes known supported / unsupported devices.
+- [x] `docs-supported-devices` - The documentation describes known supported / unsupported devices.
 - [x] `docs-supported-functions` - The documentation describes the supported functionality, including entities, and platforms.
   - README covers Cloud API mode, Local Modbus TCP mode, Hybrid mode, sensor groups, binary status sensors, Energy Dashboard recommendations, grid sign convention, and refresh behavior.
 - [x] `docs-troubleshooting` - The documentation provides troubleshooting information.
@@ -86,13 +85,3 @@ Legend:
 - [x] `async-dependency` - Dependency is async.
 - [x] `inject-websession` - The integration dependency supports passing in a websession.
 - [ ] `strict-typing` - Strict typing.
-
-## Next Quality Targets
-
-- Add full Home Assistant config flow tests.
-- Add coverage measurement for refresh button behavior and manual refresh rate-limit skipping.
-- Measure and raise test coverage toward 95%.
-- Add automation examples to the README.
-- Add an explicit supported / unsupported devices section to the README.
-- Use translated exceptions where Home Assistant supports them.
-- Decide whether discovery and dynamic device handling are possible for Cloud API or Local Modbus TCP mode.

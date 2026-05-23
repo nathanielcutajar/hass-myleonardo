@@ -117,6 +117,11 @@ class MyLeonardoConfigFlowStructureTest(unittest.TestCase):
         self.assertIn("MIN_ENERGY_SCAN_INTERVAL", source_names)
         self.assertIn("DEFAULT_ADVANCED_SCAN_INTERVAL", source_names)
         self.assertIn("MIN_ADVANCED_SCAN_INTERVAL", source_names)
+        self.assertIn("CONF_ENABLE_MONTHLY_ENERGY_SENSORS", source_names)
+        self.assertIn(
+            "CONF_ENABLE_ADVANCED_COMPLETE_SENSORS",
+            source_names,
+        )
 
     def test_reconfigure_supports_cloud_and_modbus_entries(self):
         function = get_function(

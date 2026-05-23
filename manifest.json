@@ -1,7 +1,7 @@
 {
   "domain": "myleonardo",
   "name": "MyLeonardo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "config_flow": true,
   "documentation": "https://github.com/nathanielcutajar/hass-myleonardo",
   "issue_tracker": "https://github.com/nathanielcutajar/hass-myleonardo/issues",

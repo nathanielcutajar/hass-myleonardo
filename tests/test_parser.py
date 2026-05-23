@@ -1,14 +1,20 @@
 import json
 import sys
 import unittest
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from parser import get_binary_sensor_value, get_sensor_value  # noqa: E402
+from parser import (  # noqa: E402
+    as_date,
+    as_datetime,
+    as_float,
+    get_binary_sensor_value,
+    get_sensor_value,
+)
 
 
 def load_sample(name):
@@ -60,6 +66,18 @@ class MyLeonardoParserTest(unittest.TestCase):
             date(2026, 5, 1),
         )
 
+    def test_monthly_energy_values_are_scaled_to_kwh(self):
+        data = load_sample("energy_monthly.json")
+
+        self.assertEqual(
+            get_sensor_value(data, "EacPV", "energy_monthly", 0.001),
+            487.24,
+        )
+        self.assertEqual(
+            get_sensor_value(data, "EacGridOut", "energy_monthly", 0.001),
+            71.48,
+        )
+
     def test_advanced_values(self):
         data = load_sample("advanced.json")
 
@@ -69,6 +87,21 @@ class MyLeonardoParserTest(unittest.TestCase):
         )
         self.assertIsNone(
             get_sensor_value(data, "Tint", "advanced"),
+        )
+
+    def test_advanced_complete_values(self):
+        data = load_sample("advanced_complete.json")
+
+        self.assertEqual(
+            get_sensor_value(data, "SoH", "advanced_complete"),
+            99,
+        )
+        self.assertEqual(
+            get_sensor_value(data, "VEoC", "advanced_complete"),
+            53.2,
+        )
+        self.assertIsNone(
+            get_sensor_value(data, "FlagWRM", "advanced_complete"),
         )
 
     def test_modbus_values_use_dict_payload(self):
@@ -173,6 +206,14 @@ class MyLeonardoParserTest(unittest.TestCase):
                 "below",
             )
         )
+        self.assertIsNone(
+            get_binary_sensor_value(
+                {"data": {"grid_power": 1}},
+                "grid_power",
+                "modbus",
+                "unknown",
+            )
+        )
 
     def test_list_values_use_newest_bucket(self):
         data = {
@@ -199,6 +240,40 @@ class MyLeonardoParserTest(unittest.TestCase):
         )
         self.assertIsNone(
             get_sensor_value({"data": {}}, "EacPV", "energy"),
+        )
+
+    def test_scalar_converters_reject_bad_values(self):
+        self.assertIsNone(as_float("bad"))
+        self.assertIsNone(as_float(None))
+        self.assertIsNone(as_date(None))
+        self.assertIsNone(as_date("not-a-date"))
+        self.assertIsNone(as_datetime(None))
+        self.assertIsNone(as_datetime("not-a-date"))
+
+    def test_timestamp_converter_handles_dates_and_utc_suffix(self):
+        parsed_date = as_datetime("2026-05-22")
+        parsed_utc = as_datetime("2026-05-22T10:30:00Z")
+
+        self.assertEqual(parsed_date.date(), date(2026, 5, 22))
+        self.assertEqual(
+            parsed_utc,
+            datetime.fromisoformat("2026-05-22T10:30:00+00:00"),
+        )
+
+    def test_list_values_ignore_non_dict_buckets(self):
+        data = {
+            "data": [
+                "bad",
+                {
+                    "Stime": "2026-05-17T10:00:00",
+                    "EacPV": 2000,
+                },
+            ]
+        }
+
+        self.assertEqual(
+            get_sensor_value(data, "EacPV", "energy", 0.001),
+            2,
         )
 
 

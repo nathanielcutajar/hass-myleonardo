@@ -48,7 +48,7 @@ class MyLeonardoModbusReading:
         return asdict(self)
 
 
-# Register numbers come from W-Hi-Stick_ModbusTCP_Protocol_1_0.pdf.
+# Register numbers come from the local Leonardo Modbus TCP interface.
 # Energy meters are scaled to kWh based on live validation against the inverter.
 MODBUS_SENSOR_MAP = (
     (0, "battery_soc", 1),
@@ -91,7 +91,7 @@ def sum_grid_phases(values):
 
 
 def decode_modbus_float(payload, register):
-    """Decode the W-Hi-Stick 32-bit float at a holding register address."""
+    """Decode a local Leonardo 32-bit float at a holding register address."""
     offset = register * 2
     raw = payload[offset:offset + 4]
 

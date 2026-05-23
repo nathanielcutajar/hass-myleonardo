@@ -120,6 +120,58 @@ class MyLeonardoApiTest(unittest.TestCase):
         self.assertEqual(call["headers"]["Authorization"], "Token token")
         self.assertEqual(call["params"], {"type": "C"})
 
+    def test_monthly_energy_request_uses_monthly_type(self):
+        session = FakeSession(FakeResponse(200, {"data": []}))
+        api = api_module.MyLeonardoApi(session, "token", "plant")
+
+        asyncio.run(api.async_get_monthly_energy())
+
+        call = session.calls[0]
+        self.assertEqual(
+            call["url"],
+            "https://myleonardo.western.it/api/external/energy/plant/",
+        )
+        self.assertEqual(call["params"]["type"], "M")
+        self.assertIn("date_from", call["params"])
+        self.assertIn("date_to", call["params"])
+
+    def test_advanced_complete_request_uses_complete_type(self):
+        session = FakeSession(FakeResponse(200, {"data": []}))
+        api = api_module.MyLeonardoApi(session, "token", "plant")
+
+        asyncio.run(api.async_get_advanced_complete())
+
+        call = session.calls[0]
+        self.assertEqual(
+            call["url"],
+            "https://myleonardo.western.it/api/external/advanced/plant/",
+        )
+        self.assertEqual(call["params"]["type"], "C")
+        self.assertIn("date_from", call["params"])
+        self.assertIn("date_to", call["params"])
+
+    def test_shared_endpoint_calls_are_rate_limited(self):
+        session = FakeSession(FakeResponse(200, {"data": []}))
+        api = api_module.MyLeonardoApi(session, "token", "plant")
+        sleeps = []
+        original_sleep = api_module.asyncio.sleep
+
+        async def fake_sleep(delay):
+            sleeps.append(delay)
+
+        async def run_calls():
+            api_module.asyncio.sleep = fake_sleep
+            try:
+                await api.async_get_energy()
+                await api.async_get_monthly_energy()
+            finally:
+                api_module.asyncio.sleep = original_sleep
+
+        asyncio.run(run_calls())
+
+        self.assertEqual(len(sleeps), 1)
+        self.assertGreaterEqual(sleeps[0], 19)
+
     def test_auth_status_raises_auth_error(self):
         session = FakeSession(FakeResponse(401))
         api = api_module.MyLeonardoApi(session, "token", "plant")
